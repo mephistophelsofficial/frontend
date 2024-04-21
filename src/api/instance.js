@@ -19,15 +19,15 @@ export const axiosInstance = axios.create({
   }
 });
 
-axiosInstance.interceptors.request.use(config => {
-  config.headers.Authorization = `Bearer ${window.localStorage.getItem('accessJwt')}`;
-  return config;
-});
-
-axiosInstance.interceptors.response.use(config => config, async error => {
-  if (error.response?.data.status === 'UNAUTHORIZED') {
-    showAlert(error.response?.data?.message)
-    setTimeout(() => window.location.replace(PATH.LOGIN), 500);
-  }
-  throw error;
-});
+// axiosInstance.interceptors.request.use(config => {
+//   config.headers.Authorization = `Bearer ${window.localStorage.getItem('accessJwt')}`;
+//   return config;
+// });
+//
+// axiosInstance.interceptors.response.use(config => config, async error => {
+//   if (error.response?.data.status === 'UNAUTHORIZED') {
+//     showAlert(error.response?.data?.message)
+//     setTimeout(() => window.location.replace(PATH.LOGIN), 500);
+//   }
+//   throw error;
+// });

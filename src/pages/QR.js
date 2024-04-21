@@ -13,29 +13,54 @@ export default function QRPage() {
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const [challenge, setChallenge] = useState('')
+  const [data, setData] = useState(null)
   const {values, email} = useForm({
     email: '',
   })
 
+  const check_access = () => {
+    axiosInstance.post('/waiting/web_auth/check_access', {...data}, {
+      headers: {
+        Authorization: `Bearer ${data.checkJwt}`
+      }
+    })
+      .then(res => res.data)
+      .then(r => {
+        localStorage.setItem('accessJwt', r.accessJwt)
+        showAlert(r.privateKey, 'alert-success')
+        setTimeout(() => {
+          navigate(PATH.HOME)
+        }, 2000)
+      })
+      .catch(e => {
+        if (e.response.data.message === "Session not confirmed") {
+          setTimeout(check_access, 1000)
+        } else {
+          showAlert(e.response.data.message)
+          navigate(PATH.LOGIN)
+        }
+      })
+  }
+
   useEffect(() => {
-    if (challenge !== '') {
+    if (data != null) {
       const canvas = document.getElementById('qr-code');
-      QRCode.toCanvas(canvas, challenge, function (error) {
+      const qr = {
+        sessionId: data.sessionId,
+        challenge: data.challenge
+      }
+      QRCode.toCanvas(canvas, JSON.stringify(qr), function (error) {
         if (error) console.error(error);
       });
+      check_access()
     }
-  }, [challenge])
-
-  useEffect(() => {
-
-  }, [email]);
+  }, [data])
 
   const getChallenge = () => {
     axiosInstance.post('/public/web_auth/login', {...values})
       .then(res => res.data)
       .then(res => {
-        setChallenge(res)
+        setData(res)
       })
       .catch(e => showAlert(e.response?.data?.message))
   }
@@ -44,7 +69,7 @@ export default function QRPage() {
     <div>
       <div style={centerS}>
         {
-          challenge !== '' ?
+          data != null ?
             <>
               <label htmlFor="qr-code">Отсканируйте код с устройства, на котором вы авторизованы</label>
               <canvas style={canvasS} id="qr-code">
